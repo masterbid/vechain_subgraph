@@ -1,6 +1,6 @@
 specVersion: 0.0.2
 schema:
-  file: ./schema.graphql
+  file: schema.graphql
 dataSources:
   - kind: ethereum/contract
     name: VEN
@@ -19,10 +19,10 @@ dataSources:
         - Contract
       abis:
         - name: VEN
-          file: ./abis/VEN.json
+          file: VEN\abis\VEN.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
         - event: Approval(indexed address,indexed address,uint256)
           handler: handleApproval
-      file: ./src/mapping.ts
+      file: VEN\VEN.wasm
