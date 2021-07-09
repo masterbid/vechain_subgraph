@@ -9,7 +9,6 @@ import {
 } from "../generated/schema"
 
 
-
 export function handleTransfer(event: Transfer): void {
   let contractId = event.address.toHexString()
   let contractInstance = VEN.bind(event.address)
@@ -41,16 +40,11 @@ export function handleTransfer(event: Transfer): void {
 
   let to = getOrCreateAccount(event, event.params._to).id
   let from = getOrCreateAccount(event, event.params._from).id
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
+  
   let transaction = Transaction.load(event.transaction.from.toHex())
 
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
   if (transaction == null) {
     transaction = new Transaction(event.transaction.from.toHex())
-
-    // Entity fields can be set using simple assignments
     transaction.count = BigInt.fromI32(0)
   }
 
@@ -70,9 +64,16 @@ export function handleTransfer(event: Transfer): void {
 
   // Entities can be written to the store with `.save()`
   transaction.save()
-
- 
 }
 
 
-export function handleApproval(event: Approval): void {}
+export function handleApproval(event: Approval): void {
+  let spender = getOrCreateAccount(event, event.params._spender).id
+  let owner = getOrCreateAccount(event, event.params._owner).id
+  let approvalId = owner.concat("-").concat(spender).concat("-").concat(event.block.timestamp.toString())
+  let approval = approvalEntity.load(approvalId)
+  approval.spender = spender
+  approval.owner = owner
+  approval.value = event.params._value
+  approval.save()
+}
