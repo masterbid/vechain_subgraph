@@ -1,7 +1,4 @@
-enum TransactionType {
-  TRANSFER_IN
-  TRANSFER_OUT
-}
+
 type Account @entity {
   id: ID!
   sentTransactions: [Transaction!]! @derivedFrom(field: "_from")

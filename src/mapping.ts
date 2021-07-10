@@ -41,28 +41,23 @@ export function handleTransfer(event: Transfer): void {
   let to = getOrCreateAccount(event, event.params._to).id
   let from = getOrCreateAccount(event, event.params._from).id
   
-  let transaction = Transaction.load(event.transaction.from.toHex())
+  let transaction = Transaction.load(event.transaction.hash.toHex())
 
   if (transaction == null) {
     transaction = new Transaction(event.transaction.from.toHex())
     transaction.count = BigInt.fromI32(0)
+    transaction._from = from
+    transaction._to = to
+    transaction.amount = event.params._value
+    transaction.transactionHash = event.transaction.hash
+    transaction.gasUsed = event.transaction.gasUsed
+    transaction.gasPrice = event.transaction.gasPrice
+    transaction.blockNumber = event.block.number
+    transaction.timestamp = event.block.timestamp
+    transaction.transactionIndexInBlock = event.transactionLogIndex
   }
 
-  // BigInt and BigDecimal math are supported
   transaction.count = BigInt.fromI32(1).plus(transaction.count)
-
-  // Entity fields can be set based on event parameters
-  transaction._from = from
-  transaction._to = to
-  transaction.amount = event.params._value
-  transaction.transactionHash = event.transaction.hash
-  transaction.gasUsed = event.transaction.gasUsed
-  transaction.gasPrice = event.transaction.gasPrice
-  transaction.blockNumber = event.block.number
-  transaction.timestamp = event.block.timestamp
-  transaction.transactionIndexInBlock = event.transactionLogIndex
-
-  // Entities can be written to the store with `.save()`
   transaction.save()
 }
 
@@ -70,10 +65,13 @@ export function handleTransfer(event: Transfer): void {
 export function handleApproval(event: Approval): void {
   let spender = getOrCreateAccount(event, event.params._spender).id
   let owner = getOrCreateAccount(event, event.params._owner).id
-  let approvalId = owner.concat("-").concat(spender).concat("-").concat(event.block.timestamp.toString())
+  let approvalId = owner.concat("-").concat(spender)
   let approval = approvalEntity.load(approvalId)
-  approval.spender = spender
-  approval.owner = owner
-  approval.value = event.params._value
-  approval.save()
+  if(approval == null){
+    approval = new approvalEntity(approvalId)
+    approval.spender = spender
+    approval.owner = owner
+    approval.value = event.params._value
+    approval.save()
+  }
 }
